@@ -1,0 +1,19 @@
+# Provider configuration for the module root.
+# Used by the conftest OPA job in CI which runs terraform plan
+# without real AWS credentials (backend=false, no OIDC).
+#
+# skip_credentials_validation = true allows plan generation
+# without live AWS auth — safe for module-level static analysis.
+
+provider "aws" {
+  region = "ap-south-1"
+
+  skip_credentials_validation = true
+  skip_requesting_account_id  = true
+  skip_metadata_api_check     = true
+
+  # These are placeholder values for plan-only runs.
+  # Real credentials come from OIDC at apply time in project repos.
+  access_key = "mock"
+  secret_key = "mock"
+}
