@@ -36,6 +36,6 @@ Governance stack:
 - Policy: [`devotica-labs/terraform-policies`](https://github.com/devotica-labs/terraform-policies)
 - Bootstrap: [`devotica-labs/terraform-bootstrap-template`](https://github.com/devotica-labs/terraform-bootstrap-template)
 
-## License
+### License
 
 Apache-2.0 — see [LICENSE](LICENSE).
