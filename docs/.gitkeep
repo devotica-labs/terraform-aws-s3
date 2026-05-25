@@ -1,0 +1,3 @@
+# Generated architecture artifacts live here.
+# architecture.png is auto-rendered by .github/workflows/architecture-diagram.yml
+# on every push to main from the terraform plan against examples/complete.

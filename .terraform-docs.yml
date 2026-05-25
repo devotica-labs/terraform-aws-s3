@@ -21,13 +21,9 @@ content: |-
   ```
 
   {{ .Requirements }}
-
   {{ .Providers }}
-
   {{ .Resources }}
-
   {{ .Inputs }}
-
   {{ .Outputs }}
 
 output:

@@ -7,7 +7,13 @@ Object Lock (WORM), and cross-region replication.
 Part of the [Devotica Terraform module catalog](https://registry.terraform.io/modules/devotica-labs).
 
 [![CI](https://github.com/devotica-labs/terraform-aws-s3/actions/workflows/ci.yml/badge.svg)](https://github.com/devotica-labs/terraform-aws-s3/actions/workflows/ci.yml)
+[![architecture-diagram](https://github.com/devotica-labs/terraform-aws-s3/actions/workflows/architecture-diagram.yml/badge.svg)](https://github.com/devotica-labs/terraform-aws-s3/actions/workflows/architecture-diagram.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
+## Architecture
+
+<!-- BEGIN_ARCH -->
+<!-- END_ARCH -->
 
 ## Security defaults (all on by default)
 
@@ -36,6 +42,6 @@ Governance stack:
 - Policy: [`devotica-labs/terraform-policies`](https://github.com/devotica-labs/terraform-policies)
 - Bootstrap: [`devotica-labs/terraform-bootstrap-template`](https://github.com/devotica-labs/terraform-bootstrap-template)
 
-### License
+## License
 
 Apache-2.0 — see [LICENSE](LICENSE).
