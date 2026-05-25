@@ -1,3 +1,12 @@
+# ---------------------------------------------------------------------------
+# Release for terraform-aws-s3 — uses the central reusable workflow from
+# devotica-labs/terraform-shared-config.
+# release-please bumps semver from conventional commits, signs tags with
+# cosign, generates CycloneDX SBOM, and creates GitHub Releases.
+#
+# Refs: terraform-module-repo-plan-s3-v1.1 §15, governance-tooling-v1.0 §4
+# ---------------------------------------------------------------------------
+
 name: Release
 
 on:
@@ -12,6 +21,4 @@ permissions:
 jobs:
   release:
     uses: devotica-labs/terraform-shared-config/.github/workflows/terraform-module-release.yml@v1
-    with:
-      terraform-version: "1.9.5"
     secrets: inherit
