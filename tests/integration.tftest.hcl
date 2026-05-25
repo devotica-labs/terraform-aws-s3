@@ -7,9 +7,9 @@ provider "aws" {
 }
 
 variables {
-  name        = "integ-test-s3"
-  kms_key_arn = "arn:aws:kms:ap-south-1:911526871324:key/fef997b5-160e-4af8-be46-d733360fefe9"
-  force_destroy = true   # allow cleanup after test
+  name          = "integ-test-s3"
+  kms_key_arn   = "arn:aws:kms:ap-south-1:911526871324:key/fef997b5-160e-4af8-be46-d733360fefe9"
+  force_destroy = true # allow cleanup after test
   tags = {
     Environment = "integration-test"
     Ephemeral   = "true"
