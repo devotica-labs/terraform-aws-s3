@@ -1,3 +1,16 @@
+# ---------------------------------------------------------------------------
+# CI for terraform-aws-s3 — uses the central reusable workflow from
+# devotica-labs/terraform-shared-config so every module repo enforces the
+# same standard (fmt, validate, tflint, tfsec, gitleaks, terraform-docs,
+# conftest against the central terraform-policies pack, terraform test,
+# checkov, examples build).
+#
+# To customise per-repo behaviour, override inputs here. Do NOT re-implement
+# checks inline — that defeats the central-governance model.
+#
+# Refs: terraform-module-repo-plan-s3-v1.1 §6, governance-tooling-v1.0 §4
+# ---------------------------------------------------------------------------
+
 name: CI
 
 on:
@@ -7,7 +20,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: write
+  contents: write      # terraform-docs auto-update pushes regenerated README on PRs
   pull-requests: write
   id-token: write
 
@@ -17,7 +30,5 @@ jobs:
     with:
       terraform-version: "1.9.5"
       working-directory: "."
-      terraform-docs-auto-update: true
-      aws-role-arn: ${{ vars.AWS_OIDC_ROLE_ARN }}
-      aws-region: "ap-south-1"
+      terraform-docs-auto-update: true  # bot regenerates README on PRs
     secrets: inherit
