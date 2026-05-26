@@ -1,12 +1,3 @@
-# ---------------------------------------------------------------------------
-# Release for terraform-aws-s3 — uses the central reusable workflow from
-# devotica-labs/terraform-shared-config.
-# release-please bumps semver from conventional commits, signs tags with
-# cosign, generates CycloneDX SBOM, and creates GitHub Releases.
-#
-# Refs: terraform-module-repo-plan-s3-v1.1 §15, governance-tooling-v1.0 §4
-# ---------------------------------------------------------------------------
-
 name: Release
 
 on:
@@ -16,9 +7,56 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  id-token: write
+  id-token: write   # cosign OIDC keyless signing
 
 jobs:
-  release:
-    uses: devotica-labs/terraform-shared-config/.github/workflows/terraform-module-release.yml@v1
-    secrets: inherit
+  release_please:
+    name: release-please
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.rp.outputs.release_created }}
+      tag_name: ${{ steps.rp.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v5
+        id: rp
+        with:
+          release-type: terraform-module
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  publish:
+    name: Sign + SBOM + Registry
+    needs: release_please
+    if: needs.release_please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.release_please.outputs.tag_name }}
+
+      # ── cosign keyless sign ──────────────────────────────────────────────
+      - uses: sigstore/cosign-installer@v3
+      - name: Sign git tag
+        run: |
+          cosign sign-blob \
+            --yes \
+            --bundle="${{ needs.release_please.outputs.tag_name }}.bundle" \
+            <(echo "${{ needs.release_please.outputs.tag_name }}")
+
+      # ── CycloneDX SBOM ──────────────────────────────────────────────────
+      - uses: CycloneDX/gh-terraform-provider-action@v1
+        with:
+          project-directory: .
+          output-file: "${{ needs.release_please.outputs.tag_name }}.cdx.json"
+
+      # ── Attach to GitHub Release ─────────────────────────────────────────
+      - uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ needs.release_please.outputs.tag_name }}
+          files: |
+            ${{ needs.release_please.outputs.tag_name }}.bundle
+            ${{ needs.release_please.outputs.tag_name }}.cdx.json

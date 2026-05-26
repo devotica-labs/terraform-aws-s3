@@ -1,0 +1,22 @@
+terraform-aws-s3
+Copyright 2026 Devotica Labs
+
+This product includes software developed at Devotica Labs
+(https://github.com/devotica-labs).
+
+================================================================================
+
+This module is purpose-built for Indian fintech workloads and integrates
+with the central CI/policy stack at:
+
+  devotica-labs/terraform-shared-config
+  devotica-labs/terraform-policies
+  devotica-labs/terraform-bootstrap-template
+
+Security defaults satisfy RBI IT Framework §6.4, DPDP Act 2023,
+PCI-DSS v4.0, SOC 2, and CIS AWS Foundations Benchmark 2.1.1 / 2.1.2.
+
+================================================================================
+
+Third-party components and their licenses are documented in CHANGELOG.md
+and inline where used.

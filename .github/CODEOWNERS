@@ -1,0 +1,15 @@
+# CODEOWNERS for terraform-aws-s3
+#
+# This module manages S3 buckets with fintech-grade defaults (SSE-KMS,
+# versioning, TLS-only, access logging, WORM, cross-region replication).
+# Security has equity in every file — all changes route to both teams.
+#
+# Per Module-Repo Plan s3-v1.1 §16 governance.
+
+# Default: every change requires both teams to approve.
+*                          @devotica-labs/cloud-leads @devotica-labs/security
+
+# CI/CD pipelines have privileged OIDC role assumption — security is
+# explicitly an owner so a config slip cannot bypass review.
+/.github/                  @devotica-labs/cloud-leads @devotica-labs/security
+/.github/workflows/        @devotica-labs/cloud-leads @devotica-labs/security

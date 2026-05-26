@@ -199,3 +199,13 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+# ---------------------------------------------------------------------------
+# EVENT NOTIFICATIONS (CKV2_AWS_62)
+# ---------------------------------------------------------------------------
+
+variable "notification_queue_arn" {
+  description = "ARN of the SQS queue to receive S3 event notifications. Leave empty to disable. Satisfies CKV2_AWS_62."
+  type        = string
+  default     = ""
+}

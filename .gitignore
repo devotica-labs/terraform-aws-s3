@@ -1,8 +1,13 @@
-.terraform/
-.terraform.lock.hcl
 *.tfstate
+*.tfstate.*
 *.tfstate.backup
+.terraform/
 *.tfplan
-tfplan.binary
+*.binary
 tfplan.json
-.env
+crash.log
+.infracost/
+.DS_Store
+.vscode/
+*.tfvars
+!examples/**/*.tfvars
