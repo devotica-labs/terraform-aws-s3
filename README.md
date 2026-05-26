@@ -151,6 +151,7 @@ module "s3_bucket" {
 | [aws_s3_bucket_intelligent_tiering_configuration.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_intelligent_tiering_configuration) | resource |
 | [aws_s3_bucket_lifecycle_configuration.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_lifecycle_configuration) | resource |
 | [aws_s3_bucket_logging.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_logging) | resource |
+| [aws_s3_bucket_notification.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_notification) | resource |
 | [aws_s3_bucket_object_lock_configuration.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_object_lock_configuration) | resource |
 | [aws_s3_bucket_policy.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_policy) | resource |
 | [aws_s3_bucket_public_access_block.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_public_access_block) | resource |
@@ -172,6 +173,7 @@ module "s3_bucket" {
 | <a name="input_logging_target_prefix"></a> [logging\_target\_prefix](#input\_logging\_target\_prefix) | Prefix for access log objects in the target bucket. | `string` | `"s3-access-logs/"` | no |
 | <a name="input_mfa_delete"></a> [mfa\_delete](#input\_mfa\_delete) | Require MFA to permanently delete object versions. Enable in prod for highest-sensitivity buckets. | `bool` | `false` | no |
 | <a name="input_noncurrent_version_expiry_days"></a> [noncurrent\_version\_expiry\_days](#input\_noncurrent\_version\_expiry\_days) | Days before noncurrent object versions are permanently deleted. 0 disables expiry. | `number` | `90` | no |
+| <a name="input_notification_queue_arn"></a> [notification\_queue\_arn](#input\_notification\_queue\_arn) | ARN of the SQS queue to receive S3 event notifications. Leave empty to disable. Satisfies CKV2\_AWS\_62. | `string` | `""` | no |
 | <a name="input_object_lock_days"></a> [object\_lock\_days](#input\_object\_lock\_days) | Number of days for Object Lock default retention. 0 means no default retention period. | `number` | `0` | no |
 | <a name="input_object_lock_enabled"></a> [object\_lock\_enabled](#input\_object\_lock\_enabled) | Enable S3 Object Lock (WORM). Cannot be disabled after bucket creation. Required for some RBI/SEBI audit mandates. | `bool` | `false` | no |
 | <a name="input_object_lock_mode"></a> [object\_lock\_mode](#input\_object\_lock\_mode) | Object Lock retention mode: GOVERNANCE (admin can override) or COMPLIANCE (no override, ever). | `string` | `"GOVERNANCE"` | no |
