@@ -3,8 +3,7 @@
 
 Reads the output of `terraform show -json plan.binary` from the
 `examples/complete/` plan, maps each planned AWS resource to its
-`diagrams.aws.*` icon, groups subnets by availability zone and tier
-(public / private), and writes a PNG.
+`diagrams.aws.*` icon, and writes a PNG.
 
 This script is invoked from `.github/workflows/architecture-diagram.yml`
 on every PR and on push to main. The committed PNG lives at
@@ -22,23 +21,15 @@ Example:
 from __future__ import annotations
 
 import json
-import re
 import sys
 from collections import defaultdict
 from pathlib import Path
 
 from diagrams import Cluster, Diagram, Edge
+from diagrams.aws.storage import S3
+from diagrams.aws.security import KMS
 from diagrams.aws.management import Cloudwatch
-from diagrams.aws.network import (
-    InternetGateway,
-    NATGateway,
-    PrivateSubnet,
-    PublicSubnet,
-    RouteTable,
-    VPC,
-    VPCFlowLogs,
-)
-from diagrams.aws.security import IAMRole
+from diagrams.aws.general import General
 
 
 # ----------------------------------------------------------------------------
@@ -77,47 +68,25 @@ def render(plan_path: Path, out_no_ext: Path) -> None:
     for r in resources:
         by_type[r["type"]].append(r)
 
-    vpcs = by_type.get("aws_vpc", [])
-    if not vpcs:
-        raise SystemExit("No aws_vpc resource found in plan — nothing to render.")
+    buckets = by_type.get("aws_s3_bucket", [])
+    if not buckets:
+        raise SystemExit("No aws_s3_bucket resource found in plan — nothing to render.")
 
-    vpc_v = values(vpcs[0])
-    vpc_name = vpc_v.get("tags", {}).get("Name") or "vpc"
-    vpc_cidr = vpc_v.get("cidr_block", "(no cidr)")
+    bucket_v = values(buckets[0])
+    bucket_name = bucket_v.get("bucket") or "s3-bucket"
 
-    igws = by_type.get("aws_internet_gateway", [])
-    nat_gws = by_type.get("aws_nat_gateway", [])
+    has_versioning   = bool(by_type.get("aws_s3_bucket_versioning"))
+    has_encryption   = bool(by_type.get("aws_s3_bucket_server_side_encryption_configuration"))
+    has_public_block = bool(by_type.get("aws_s3_bucket_public_access_block"))
+    has_policy       = bool(by_type.get("aws_s3_bucket_policy"))
+    has_lifecycle    = bool(by_type.get("aws_s3_bucket_lifecycle_configuration"))
+    has_logging      = bool(by_type.get("aws_s3_bucket_logging"))
+    has_replication  = bool(by_type.get("aws_s3_bucket_replication_configuration"))
+    has_object_lock  = bool(by_type.get("aws_s3_bucket_object_lock_configuration"))
+    has_cors         = bool(by_type.get("aws_s3_bucket_cors_configuration"))
+    has_tiering      = bool(by_type.get("aws_s3_bucket_intelligent_tiering_configuration"))
+    has_iam_role     = bool(by_type.get("aws_iam_role"))
 
-    # Bucket subnets per AZ, per tier. The vpc module names them
-    # aws_subnet.public["az"] and aws_subnet.private["az"], so we
-    # disambiguate on the resource address.
-    public_by_az: dict[str, list[dict]] = defaultdict(list)
-    private_by_az: dict[str, list[dict]] = defaultdict(list)
-    for r in by_type.get("aws_subnet", []):
-        az = values(r).get("availability_zone") or "unknown"
-        if ".public" in r["address"]:
-            public_by_az[az].append(r)
-        elif ".private" in r["address"]:
-            private_by_az[az].append(r)
-
-    all_azs = sorted(set(public_by_az.keys()) | set(private_by_az.keys()))
-
-    nat_by_az: dict[str, dict] = {}
-    for ng in nat_gws:
-        # Module addresses NAT gateways via aws_nat_gateway.this["az"]
-        m = re.search(r'\["([^"]+)"\]', ng["address"])
-        if m:
-            nat_by_az[m.group(1)] = ng
-
-    has_flow_logs = bool(by_type.get("aws_flow_log"))
-    has_log_group = bool(by_type.get("aws_cloudwatch_log_group"))
-    has_flow_log_role = any(
-        ".flow_logs" in r["address"] for r in by_type.get("aws_iam_role", [])
-    )
-
-    # ------------------------------------------------------------------------
-    # Diagram
-    # ------------------------------------------------------------------------
     graph_attr = {
         "fontsize": "20",
         "splines": "ortho",
@@ -125,69 +94,62 @@ def render(plan_path: Path, out_no_ext: Path) -> None:
         "nodesep": "0.45",
         "pad": "0.5",
     }
+
     out_no_ext.parent.mkdir(parents=True, exist_ok=True)
+
     with Diagram(
-        f"terraform-aws-vpc — {vpc_name}  ({vpc_cidr})",
+        f"terraform-aws-s3 — {bucket_name}",
         filename=str(out_no_ext),
         show=False,
         direction="TB",
         outformat="png",
         graph_attr=graph_attr,
     ):
-        with Cluster(f"VPC  {vpc_cidr}"):
-            igw_node = InternetGateway("Internet\nGateway") if igws else None
+        kms = KMS("KMS Key\n(external)\nkms_key_arn")
+        bucket = S3(f"S3 Bucket\n{bucket_name}")
 
-            # Public route table fan-in target.
-            public_rt = None
-            for r in by_type.get("aws_route_table", []):
-                if ".public" in r["address"]:
-                    public_rt = RouteTable("Public RT\n→ IGW")
-                    break
+        kms >> Edge(label="encrypts") >> bucket
 
-            # One AZ cluster per zone. Within each cluster: public subnet,
-            # NAT (if present), private subnet, private RT.
-            for az in all_azs:
-                with Cluster(f"AZ  {az}"):
-                    pub_nodes = []
-                    for s in public_by_az.get(az, []):
-                        cidr = values(s).get("cidr_block", "")
-                        pub_nodes.append(PublicSubnet(f"Public\n{cidr}"))
+        with Cluster("Security Controls (always on)"):
+            nodes = []
+            if has_public_block:
+                nodes.append(General("public_access_block\nall 4 = true"))
+            if has_encryption:
+                nodes.append(General("server_side_encryption\naws:kms"))
+            if has_policy:
+                nodes.append(General("bucket_policy\nDenyNonTLS"))
+            if has_versioning:
+                nodes.append(General("versioning\nEnabled"))
+            for n in nodes:
+                bucket >> Edge(label="enforces") >> n
 
-                    az_nat_node = None
-                    if az in nat_by_az:
-                        az_nat_node = NATGateway(f"NAT GW\n{az[-1]}")
+        optional = []
+        if has_lifecycle:
+            optional.append(General("lifecycle\nIA → Glacier → Expire"))
+        if has_logging:
+            optional.append(General("bucket_logging\naccess logs"))
+        if has_object_lock:
+            optional.append(General("object_lock\nWORM"))
+        if has_cors:
+            optional.append(General("cors_configuration"))
+        if has_tiering:
+            optional.append(General("intelligent_tiering\ncost opt"))
 
-                    priv_nodes = []
-                    for s in private_by_az.get(az, []):
-                        cidr = values(s).get("cidr_block", "")
-                        priv_nodes.append(PrivateSubnet(f"Private\n{cidr}"))
+        if optional:
+            with Cluster("Optional Features"):
+                for n in optional:
+                    bucket >> Edge(label="optional") >> n
 
-                    # Private subnet → NAT for egress
-                    if az_nat_node:
-                        for p in priv_nodes:
-                            p >> Edge(label="egress") >> az_nat_node
+        if has_logging:
+            cw = Cloudwatch("CloudWatch\nlogs target")
+            bucket >> Edge(label="sends logs to") >> cw
 
-                    # NAT → public RT (lives in public subnet at apply time)
-                    if az_nat_node and public_rt:
-                        az_nat_node >> Edge(style="dashed") >> public_rt
-
-                    # Public subnet → public RT
-                    if public_rt:
-                        for p in pub_nodes:
-                            p >> public_rt
-
-            # Public RT → IGW
-            if public_rt and igw_node:
-                public_rt >> Edge(label="0.0.0.0/0") >> igw_node
-
-            # Observability sidecar
-            if has_flow_logs:
-                with Cluster("Observability"):
-                    flow_log_node = VPCFlowLogs("VPC Flow Logs")
-                    if has_log_group:
-                        flow_log_node >> Cloudwatch("CloudWatch\nLog Group")
-                    if has_flow_log_role:
-                        IAMRole("Flow Logs\nIAM Role")
+        if has_replication and has_iam_role:
+            with Cluster("Cross-Region DR"):
+                dr = S3("DR Bucket\n(destination)")
+                repl_role = General("IAM Role\nreplication")
+                bucket >> Edge(label="replicates to") >> dr
+                repl_role >> Edge(label="assumes") >> dr
 
 
 def main() -> None:
