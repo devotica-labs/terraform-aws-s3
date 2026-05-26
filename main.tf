@@ -152,6 +152,15 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
       days = var.expiry_days > 0 ? var.expiry_days : 1
     }
   }
+
+  rule {
+    id     = "abort-incomplete-multipart-upload"
+    status = "Enabled"
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
 }
 
 # ---------------------------------------------------------------------------
@@ -322,5 +331,21 @@ resource "aws_s3_bucket_replication_configuration" "this" {
         replica_kms_key_id = var.replication_destination_kms_key_arn
       }
     }
+  }
+}
+
+# ---------------------------------------------------------------------------
+# Event notifications (optional — CKV2_AWS_62)
+# Disabled by default. Enable via notification_queue_arn variable.
+# ---------------------------------------------------------------------------
+
+resource "aws_s3_bucket_notification" "this" {
+  count  = length(var.notification_queue_arn) > 0 ? 1 : 0
+  bucket = aws_s3_bucket.this.id
+
+  queue {
+    id        = "all-events"
+    queue_arn = var.notification_queue_arn
+    events    = ["s3:ObjectCreated:*", "s3:ObjectRemoved:*"]
   }
 }
