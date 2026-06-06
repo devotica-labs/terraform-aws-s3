@@ -2,7 +2,7 @@ locals {
   # Tag map merged on every resource
   tags = merge(var.tags, {
     ManagedBy = "terraform"
-    Module    = "devotica-labs/s3-bucket/aws"
+    Module    = "devotica-labs/s3/aws"
   })
 
   # Lifecycle rules are only meaningful when versioning is on
