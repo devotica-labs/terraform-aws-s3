@@ -3,6 +3,13 @@
 Managed by [release-please](https://github.com/googleapis/release-please).
 Do not edit manually — use Conventional Commits in PR titles.
 
+## [1.2.0](https://github.com/devotica-labs/terraform-aws-s3/compare/v1.1.0...v1.2.0) (2026-06-18)
+
+
+### Features
+
+* align examples and locals to terraform-aws-vpc standard ([649d464](https://github.com/devotica-labs/terraform-aws-s3/commit/649d464bea634322016fc2c35f4c851291c526eb))
+
 ## [1.1.0](https://github.com/devotica-labs/terraform-aws-s3/compare/v1.0.0...v1.1.0) (2026-06-06)
 
 

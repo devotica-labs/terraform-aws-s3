@@ -64,7 +64,7 @@ provider "aws" {
 # Uses local path during development.
 # Change to Registry source after first release:
 #   source  = "devotica-labs/s3/aws"
-#   version = "~> 1.1"
+#   version = "~> 1.2"
 
 module "s3_bucket" {
   source = "../.."
