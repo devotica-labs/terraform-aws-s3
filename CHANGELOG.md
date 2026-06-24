@@ -3,6 +3,13 @@
 Managed by [release-please](https://github.com/googleapis/release-please).
 Do not edit manually — use Conventional Commits in PR titles.
 
+## [1.2.1](https://github.com/devotica-labs/terraform-aws-s3/compare/v1.2.0...v1.2.1) (2026-06-24)
+
+
+### Bug Fixes
+
+* replace dead CycloneDX SBOM action with anchore/sbom-action ([1c46af6](https://github.com/devotica-labs/terraform-aws-s3/commit/1c46af6750d62e07d1c91b416fb36494bc8b684d))
+
 ## [1.2.0](https://github.com/devotica-labs/terraform-aws-s3/compare/v1.1.0...v1.2.0) (2026-06-24)
 
 
